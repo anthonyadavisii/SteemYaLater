@@ -1,8 +1,23 @@
 # SteemYaLater
-A Python Script that uses the Steem Beem Library and PyWebCopy to Archive your Blog as Web Page Archives
+A Python Script that uses the Steem Beem Library and PyWebCopy to Archive your Steem Blockchain  Blog Markdown as Text Files and Backs up Images
 
-Install prereqs. (I use Python 3.6 but you may be able to get away with pip install x)
-python3.6 -m pip install beem
-python3.6 -m pip install pywebcopy
-python3.6 -m pip install bs4
-python3.6 -m pip install pyquerypython
+Use Python 3.6
+
+# Install Prerequisites
+Python 3.6 -m pip install beem
+Python 3.6 -m pip install wget
+Python 3.6 -m pip install urllib3
+
+# Execute Script
+
+python3.6 SteemYaLater.py
+
+# Prompts for Steem User
+
+Account to Backup? anthonyadavisii
+
+# Script will crawl your blog_entries filtering out resteems (reblogs)
+
+![st4y66.png](https://img.esteem.app/st4y66.png)
+
+# Will then cycle through each blog_entry, save the body to a .txt files, and grab any images it can with wget or urllib3
