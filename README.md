@@ -8,6 +8,10 @@ Python 3.6 -m pip install beem
 Python 3.6 -m pip install wget
 Python 3.6 -m pip install urllib3
 
+# Optional for certificate validation
+
+Python 3.6 -m pip install certifi
+
 # Execute Script
 
 python3.6 SteemYaLater.py
