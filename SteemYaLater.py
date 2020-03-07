@@ -174,9 +174,9 @@ def get_image_hash_list(account_to_backup):
 
 def download_blog_entry(blog_entry,hash_table,hashes): # accepts output from from Beem Account.get_blog(start_index=1,limit=1,raw_data=True,short_entries=True)
     status_list = []
-	halfPause = int(pauseTimeInit/2)
-	lowPauseTime = pauseTimeInit - halfPause
-	upPauseTime = pauseTimeInit + halfPause
+    halfPause = int(pauseTimeInit/2)
+    lowPauseTime = pauseTimeInit - halfPause
+    upPauseTime = pauseTimeInit + halfPause
     id = '@'+blog_entry['author']+'/'+blog_entry['permlink']
     try:
         c = Comment(id, steem_instance=stm)
@@ -271,8 +271,8 @@ def download_blog_entry(blog_entry,hash_table,hashes): # accepts output from fro
 #prepopulate list for batch operations
 accounts = []
 if len(accounts) == 0:# Prompts user for Steem account for backup if account list not prepopulated. Creates respective user folder in backups if not exists 
-	account = input("Account to Backup?")
-	accounts.append(account)
+    account = input("Account to Backup?")
+    accounts.append(account)
 
 def download_blogs(accounts,rounds):
     for account_to_backup in accounts:
