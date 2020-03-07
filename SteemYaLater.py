@@ -65,7 +65,7 @@ def get_file_hash(ref):
             print(e)
             logging.warning('Error obtaining '+ref+' hash w urllib3!')
             try:
-                data = downloadhash(ref)
+                data = downloadFile(ref)
                 md5_returned = hashlib.md5(data).hexdigest()
             except Exception as e:
                 print(e)
