@@ -140,9 +140,6 @@ def downloadProgress(download_t, download_d, upload_t, upload_d):
     sys.stdout.write("\r%s %3i%%" % ("Download:", frac*100)  )
 
 def downloadFile(url, outpath=False, key_file=False, cert_file=False):
-    halfPause = int(pauseTimeInit/2) #fileList = readFileList(fileListFile)
-    lowPauseTime = pauseTimeInit - halfPause
-    upPauseTime = pauseTimeInit + halfPause
     fileName = url.split('/')[-1]
     curl = pycurl.Curl()
     if outpath:
