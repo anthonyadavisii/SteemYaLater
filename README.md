@@ -1,7 +1,17 @@
 # SteemYaLater
-A Python Script that uses the Steem Beem Library and PyWebCopy to Archive your Steem Blockchain  Blog Markdown as Text Files and Backs up Images
+A Python Script that uses the Steem Beem Library and a variety of methods to Archive your Steem Blockchain  Blog Markdown as Text Files and Backs up Images
 
-Use Python 3.6
+# Version 2.0 Change Notes
+
+- Added PyCurl download method to address issues w steemitboard images
+- Data Deplication enabled: Prevents redownload of file if already exists in folder structure. Symbolic link with relative path placed instead saving valuable storage space.
+- Logging and CSV output: Session log file is produced in working directory. Output CSVs are created for each account so users may readily see what failed and may require manual action. 
+
+# Known Issues
+
+DTube thumbnails will not download as they are not stored within the Beem Comment json_metadata image property. Logic to be added to accomodate.
+
+Uses Python 3.6
 
 # Install Prerequisites
 Python 3.6 -m pip install beem
