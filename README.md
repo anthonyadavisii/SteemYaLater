@@ -7,12 +7,14 @@ Use Python 3.6
 Python 3.6 -m pip install beem
 Python 3.6 -m pip install wget
 Python 3.6 -m pip install urllib3[secure]
+Python 3.6 -m pip install pycurl
+Python 3.6 -m pip install certifi #may or may not be needed if the [secure] option is used for urllib3
 
 # Execute Script
 
 python3.6 SteemYaLater.py
 
-# Prompts for Steem User
+# Prompts for Steem User. Alternatively, you may populate the accounts list variable with users to backup
 
 Account to Backup? anthonyadavisii
 
