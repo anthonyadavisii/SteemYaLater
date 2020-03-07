@@ -54,6 +54,7 @@ def export_csv(name,input_list):
 
 
 def get_file_hash(ref):
+    md5_returned = None
     if str(ref).startswith('http'):
         try:
             request = get_http_response(ref)
