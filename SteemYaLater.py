@@ -1,4 +1,4 @@
-import os, certifi, csv, datetime, hashlib, io, logging, pycurl, random, time, wget, urllib3, shutil, sys
+import os, certifi, csv, datetime, hashlib, io, json, logging, pycurl, random, time, wget, urllib3, shutil, socket, sys
 
 from beem import Steem
 from beem.account import Account
@@ -29,17 +29,40 @@ halfPause = int(pauseTimeInit/2)
 lowPauseTime = pauseTimeInit - halfPause
 upPauseTime = pauseTimeInit + halfPause
 
-def get_blog_entries(account_to_backup):
-    acc = Account(account_to_backup,steem_instance=stm)
+def loadjson(filename):
+    if os.path.exists(filename):
+        with open(filename) as json_file:
+            loadedfile = json.load(json_file)
+    else:
+        print(filename+" not found!")
+        return
+    return loadedfile
+
+def writejson(filename,jdict):
+    with open(filename, 'w') as json_file:
+        json.dump(jdict, json_file)
+
+def get_blog_entries(account_to_backup,persist=False):
     blog_list = []
-    i = 1
-    while len(acc.get_blog(i,1,raw_data=True,short_entries=True)) > 0:
-        chunk = acc.get_blog(i,1,raw_data=True,short_entries=True)
-        i += 1
+    acc = Account(account_to_backup,steem_instance=stm)
+    if os.path.exists(working_dir+"/Backups/"+account_to_backup+"/account_to_backup.json"):
+        jTx = loadjson(working_dir+"/Backups/"+account_to_backup+"/account_to_backup.json")
+        if jTx:
+            for json_data in jTx:
+                blog_list.append(json_data)
+    if blog_list:
+        startIndex = blog_list[-1]['entry_id']
+    else:
+        startIndex = 1
+    while len(acc.get_blog(startIndex,1,raw_data=True,short_entries=True)) > 0:
+        chunk = acc.get_blog(startIndex,1,raw_data=True,short_entries=True)
+        startIndex += 1
         for c in chunk:
             print(c)
             if c['author'] == account_to_backup:
                 blog_list.append(c)
+    if persist:
+        writejson(working_dir+"/Backups/"+account_to_backup+"/account_to_backup.json",blog_list)
     return blog_list
 
 # exports list to csv file
@@ -121,9 +144,9 @@ def downloadFile(url, outpath=False, key_file=False, cert_file=False):
     curl.setopt(pycurl.PROGRESSFUNCTION, downloadProgress)
     curl.setopt(pycurl.FOLLOWLOCATION, 1)
     curl.setopt(pycurl.MAXREDIRS, 5)
-    curl.setopt(pycurl.CONNECTTIMEOUT, 50)
-    curl.setopt(pycurl.TIMEOUT, 7)
-    curl.setopt(pycurl.FTP_RESPONSE_TIMEOUT, 600)
+    curl.setopt(pycurl.CONNECTTIMEOUT, 6)
+    curl.setopt(pycurl.TIMEOUT, 5)
+    curl.setopt(pycurl.FTP_RESPONSE_TIMEOUT, 5)
     curl.setopt(pycurl.NOSIGNAL, 1)
     curl.setopt(pycurl.SSL_VERIFYPEER, 0)
     curl.setopt(pycurl.SSL_VERIFYHOST, 2)
@@ -175,9 +198,6 @@ def get_image_hash_list(account_to_backup):
 
 def download_blog_entry(blog_entry,hash_table,hashes): # accepts output from from Beem Account.get_blog(start_index=1,limit=1,raw_data=True,short_entries=True)
     status_list = []
-    halfPause = int(pauseTimeInit/2)
-    lowPauseTime = pauseTimeInit - halfPause
-    upPauseTime = pauseTimeInit + halfPause
     id = '@'+blog_entry['author']+'/'+blog_entry['permlink']
     try:
         c = Comment(id, steem_instance=stm)
@@ -199,66 +219,77 @@ def download_blog_entry(blog_entry,hash_table,hashes): # accepts output from fro
     print("Backing up "+id+" images!")
     try:
         for img in c['json_metadata']['image']:
+            halfPause = int(pauseTimeInit/2)
+            lowPauseTime = pauseTimeInit - halfPause
+            upPauseTime = pauseTimeInit + halfPause
             out_path = img_dir+'/'+img.split('/')[-1]
+            domain = img.split('//')[1].split('/')[0]
             if img:
                 try:
-                    file_hash = get_file_hash(img)
-                    if file_hash in hashes:
-                        status_dict = {'id': id, 'url': img, 'status': 'Already downloaded.'}
-                        for h in hash_table:
-                            if h['hash'] == file_hash and not os.path.islink(out_path):  #does not seem to detect symlink so using try except instad
-                                local_path = h['image_path']
-                                relative_path = os.path.relpath(local_path,out_path)
-                                try:
-                                    os.symlink(relative_path,out_path)
-                                except FileExistsError:
-                                    print('Symbolic link or file already exists!')
+                    addr1 = socket.gethostbyname(domain)
+                    try:
+                        file_hash = get_file_hash(img)
+                        if file_hash in hashes:
+                            status_dict = {'id': id, 'url': img, 'status': 'Already downloaded.'}
+                            for h in hash_table:
+                                if h['hash'] == file_hash and not os.path.islink(out_path):  #does not seem to detect symlink so using try except instad
+                                    local_path = h['image_path']
+                                    relative_path = os.path.relpath(local_path,out_path)
+                                    try:
+                                        os.symlink(relative_path,out_path)
+                                    except FileExistsError:
+                                        print('Symbolic link or file already exists!')
+                            status_list.append(status_dict)
+                            continue
+                    except Exception as e:
+                        status_dict = {'id': id, 'url': img, 'status': 'Unable to get file hash.'}
                         status_list.append(status_dict)
+                        logging.warning("Unable to get "+img+"'s file hash!")
                         continue
-                except Exception as e:
-                    status_dict = {'id': id, 'url': img, 'status': 'Unable to get file hash.'}
-                    status_list.append(status_dict)
-                    logging.warning("Unable to get "+img+"'s file hash!")
-                    continue
-                if not os.path.exists(os.path.join(img_dir,img.split('/')[-1])):
-                   try:
-                       wget.download(img,out=out_path)
-                   except Exception as e:
-                       status_dict = {'id': id, 'url': img, 'status': e}
-                       status_list.append(status_dict)
-                       print(e)
-                       print("wget download failed! attempting download with urllib3.")
+                    if not os.path.exists(os.path.join(img_dir,img.split('/')[-1])):
                        try:
-                           pauseTime = random.randint(lowPauseTime, upPauseTime)
-                           time.sleep(pauseTime)
-                           download_image(out_path,img)
+                           wget.download(img,out=out_path)
                        except Exception as e:
-                           print(e)
-                           print("urllib3 download failed! attempting download with pycurl.")                               
                            status_dict = {'id': id, 'url': img, 'status': e}
                            status_list.append(status_dict)
+                           print(e)
+                           print("wget download failed! attempting download with urllib3.")
                            try:
-                               downloadFile(img, out_path)
+                               pauseTime = random.randint(lowPauseTime, upPauseTime)
+                               time.sleep(pauseTime)
+                               download_image(out_path,img)
                            except Exception as e:
                                print(e)
-                               print("pycurl download failed! attempting download with pycurl.")                               
+                               print("urllib3 download failed! attempting download with pycurl.")                               
                                status_dict = {'id': id, 'url': img, 'status': e}
                                status_list.append(status_dict)
+                               try:
+                                   downloadFile(img, out_path)
+                               except Exception as e:
+                                   print(e)
+                                   print("pycurl download failed! attempting download with pycurl.")                               
+                                   status_dict = {'id': id, 'url': img, 'status': e}
+                                   status_list.append(status_dict)
+                               else:
+                                   file_hash = downloadFile(img)
+                                   hashes.append(file_hash)
+                                   status_dict = {'id': id, 'url': img, 'status': 'pycurl success'}
                            else:
-                               file_hash = downloadFile(img)
+                               file_hash = get_file_hash(out_path)
                                hashes.append(file_hash)
-                               status_dict = {'id': id, 'url': img, 'status': 'pycurl success'}
+                               status_dict = {'id': id, 'url': img, 'status': 'urllib3 success'}
                        else:
                            file_hash = get_file_hash(out_path)
                            hashes.append(file_hash)
-                           status_dict = {'id': id, 'url': img, 'status': 'urllib3 success'}
-                   else:
-                       file_hash = get_file_hash(out_path)
-                       hashes.append(file_hash)
-                       status_dict = {'id': id, 'url': img, 'status': 'wget success'}
-                       status_list.append(status_dict)
-            pauseTime = random.randint(lowPauseTime, upPauseTime)
-            time.sleep(pauseTime)
+                           status_dict = {'id': id, 'url': img, 'status': 'wget success'}
+                           status_list.append(status_dict)
+                    pauseTime = random.randint(lowPauseTime, upPauseTime)
+                    time.sleep(pauseTime)
+                except Exception as e:
+                    status_dict = {'id': id, 'url': img, 'status': 'DNS Lookup Failed!'}
+                    status_list.append(status_dict)
+                    logging.warning("Unable to get resolve hostname "+img)
+                    continue
     except KeyError:      
         print(id+" has no images!")
         status_dict = {'id': id, 'url': 'n/a', 'status': 'No Images in Post!'}
