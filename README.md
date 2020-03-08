@@ -10,6 +10,11 @@
 
 https://github.com/anthonyadavisii/SteemYaLater
 
+# Version 3.0 Change Notes
+Added DNS check to verify resolution before attempting to connect.
+Persistent JSON account operations. Set persist variable to TRUE and script will cache account operations in a json file.
+Backup folder doesn't exist issue resolved.
+
 # Version 2.0 Change Notes
 
 - Added PyCurl download method to address issues w steemitboard images
