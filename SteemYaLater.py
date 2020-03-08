@@ -345,14 +345,12 @@ def download_blog_entry(blog_entry,hash_table,hashes): # accepts output from fro
                     pauseTime = random.randint(lowPauseTime, upPauseTime)
                     time.sleep(pauseTime)
                 except Exception as e:
-                    status_dict = {'id': id, 'url': img, 'status': 'DNS Lookup Failed!'}
+                    status_dict = status_dict = {'id': id, 'url': img, 'wget': 'DNS lookup failed!', 'url3': False, 'pcurl': False}
                     status_list.append(status_dict)
                     logging.warning("Unable to get resolve hostname "+img)
                     continue
     except KeyError:      
         print(id+" has no images!")
-        status_dict = {'id': id, 'url': 'n/a', 'status': 'No Images in Post!'}
-        status_list.append(status_dict)
     except Exception as e:
         print(id+" experienced error "+e)
     else:
