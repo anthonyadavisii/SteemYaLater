@@ -13,6 +13,10 @@ DTube thumbnails will not download as they are not stored within the Beem Commen
 
 Uses Python 3.6
 
+# PyCurl may require the following packages be installed.
+
+sudo apt install libcurl4-openssl-dev libssl-dev
+
 # Install Prerequisites
 Python 3.6 -m pip install beem
 Python 3.6 -m pip install wget
