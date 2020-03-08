@@ -146,7 +146,7 @@ def downloadFile(url, outpath=False, key_file=False, cert_file=False):
     sys.stdout.flush()
     hash = hashlib.md5(data).hexdigest()
     if outpath:
-        fp.close
+        fp.close()
     return hash
 
 def download_image(path,url): #Download Image with urllib3
