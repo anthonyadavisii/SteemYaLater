@@ -26,7 +26,7 @@ logging.basicConfig(filename=datetime.datetime.now().strftime("SteemYaLater%Y%m%
 
 # Global Vars
 pauseTimeInit = 5
-persist = False
+persist = True
 
 halfPause = int(pauseTimeInit/2)
 lowPauseTime = pauseTimeInit - halfPause
@@ -107,13 +107,20 @@ def get_file_hash(ref):
             md5_returned = hashlib.md5(data).hexdigest() # pipe contents of the file through
     return md5_returned
 
-def get_http_response(url):
+def get_http_header(url):
+    if 'steemitimages.com' in url:
+        headers={'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36', 'sec-fetch-dest': 'document','sec-fetch-mode': 'navigate', 'sec-fetch-site': 'none', 'sec-fetch-user': '?1'}
+    else:
+        headers={'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36'}
+    return headers
+
+def get_http_response(url,header):
     request = http.request(
                 'GET',
                 url,
                 retries=2,
                 preload_content=False,
-                headers={'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36'}
+                headers=header
                 )
     return request
 
@@ -179,7 +186,8 @@ def downloadFile(url, outpath=False, key_file=False, cert_file=False):
     return hash
 
 def download_image(path,url): #Download Image with urllib3
-    r = get_http_response(url)
+    header = get_http_header(url)
+    r = get_http_response(url,header)
     with r, open(path, 'wb') as out_file:
         shutil.copyfileobj(r, out_file)
     r.release_conn()
