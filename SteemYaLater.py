@@ -8,7 +8,7 @@ from beem.exceptions import AccountDoesNotExistsException, ContentDoesNotExistsE
 from beem.nodelist import NodeList
 from beem.instance import set_shared_steem_instance
 
-global working_dir, pauseTimeInit
+global working_dir, pauseTimeInit, persist
 
 nodes = NodeList().get_nodes()
 stm = Steem(node='https://anyx.io')
