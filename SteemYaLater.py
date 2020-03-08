@@ -26,7 +26,7 @@ working_dir = os.getcwd()
 logging.basicConfig(filename=datetime.datetime.now().strftime("SteemYaLater%Y%m%d-%H%M%S.log"),format='%(asctime)s %(message)s',level=logging.WARNING)
 
 # Global Vars
-persist = False
+persist = True
 pauseTimeInit = 15
 
 # Other variables
@@ -379,7 +379,7 @@ def download_blogs(accounts,rounds):
                 stats = download_blog_entry(b,img_hash_list,hashes)
                 for s in stats:
                     results.append(s)
-            export_csv('SteemYaLater_'+account_to_backup+'_results_',results)
             i += 1
+		export_csv('SteemYaLater_'+account_to_backup+'_results_',results)
 
 download_blogs(accounts,1) #runs backups on accounts w one iteration.
