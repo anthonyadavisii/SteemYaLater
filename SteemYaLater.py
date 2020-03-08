@@ -25,8 +25,8 @@ working_dir = os.getcwd()
 logging.basicConfig(filename=datetime.datetime.now().strftime("SteemYaLater%Y%m%d-%H%M%S.log"),format='%(asctime)s %(message)s',level=logging.WARNING)
 
 # Global Vars
-pauseTimeInit = 5
-persist = True
+pauseTimeInit = 10
+persist = False
 
 halfPause = int(pauseTimeInit/2)
 lowPauseTime = pauseTimeInit - halfPause
