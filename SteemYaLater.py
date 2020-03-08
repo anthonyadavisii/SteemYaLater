@@ -29,6 +29,9 @@ halfPause = int(pauseTimeInit/2)
 lowPauseTime = pauseTimeInit - halfPause
 upPauseTime = pauseTimeInit + halfPause
 
+if not os.path.isdir(working_dir+"/Backups/"):
+    os.mkdir(working_dir+"/Backups/")
+
 def loadjson(filename):
     if os.path.exists(filename):
         with open(filename) as json_file:
