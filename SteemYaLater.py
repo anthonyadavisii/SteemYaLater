@@ -283,10 +283,6 @@ def download_blog_entry(blog_entry,hash_table,hashes): # accepts output from fro
                     status_list.append(status_dict)
                     logging.warning('Unsupported URL! '+img)
                     continue
-                else:
-                    status_dict = {'id': id, 'url': img, 'wget': 'Unsupported URL', 'url3': False, 'pcurl': False}
-                    status_list.append(status_dict)
-                    logging.warning('Unsupported URL! '+img)
                 try:
                     addr1 = socket.gethostbyname(domain)
                     try:
