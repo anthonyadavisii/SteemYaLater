@@ -114,7 +114,8 @@ def get_http_header(url):
         headers={'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36'}
     return headers
 
-def get_http_response(url,header):
+def get_http_response(url):
+    header = get_http_header(url)
     request = http.request(
                 'GET',
                 url,
@@ -186,8 +187,7 @@ def downloadFile(url, outpath=False, key_file=False, cert_file=False):
     return hash
 
 def download_image(path,url): #Download Image with urllib3
-    header = get_http_header(url)
-    r = get_http_response(url,header)
+    r = get_http_response(url)
     with r, open(path, 'wb') as out_file:
         shutil.copyfileobj(r, out_file)
     r.release_conn()
