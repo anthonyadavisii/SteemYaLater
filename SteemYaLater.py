@@ -187,8 +187,7 @@ def downloadFile(url, outpath=False, key_file=False, cert_file=False):
     return hash
 
 def download_image(path,url): #Download Image with urllib3
-    header = get_http_header(url)
-    r = get_http_response(url,header)
+    r = get_http_response(url)
     with r, open(path, 'wb') as out_file:
         shutil.copyfileobj(r, out_file)
     r.release_conn()
@@ -250,12 +249,12 @@ def download_blog_entry(blog_entry,hash_table,hashes): # accepts output from fro
                         else:
                             full_filename = filename
                     except TypeError:
-                        status_dict = {'id': id, 'url': img, 'wget': "Unsupported URL", 'url3': False, 'pcurl': False}
+                        status_dict = {'id': id, 'url': img, 'wget': 'Unsupported URL', 'url3': False, 'pcurl': False}
                         status_list.append(status_dict)
                         logging.warning('Unsupported URL! '+img)
                         continue
                 else:
-                    status_dict = {'id': id, 'url': img, 'wget': "Unsupported URL", 'url3': False, 'pcurl': False}
+                    status_dict = {'id': id, 'url': img, 'wget': 'Unsupported URL', 'url3': False, 'pcurl': False}
                     status_list.append(status_dict)
                     logging.warning('Unsupported URL! '+img)
                 try:
