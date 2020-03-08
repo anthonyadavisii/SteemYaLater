@@ -23,7 +23,10 @@ http = urllib3.PoolManager(
 
 working_dir = os.getcwd()
 logging.basicConfig(filename=datetime.datetime.now().strftime("SteemYaLater%Y%m%d-%H%M%S.log"),format='%(asctime)s %(message)s',level=logging.WARNING)
-pauseTimeInit=5
+
+# Global Vars
+pauseTimeInit = 5
+persist = False
 
 halfPause = int(pauseTimeInit/2)
 lowPauseTime = pauseTimeInit - halfPause
@@ -45,7 +48,7 @@ def writejson(filename,jdict):
     with open(filename, 'w') as json_file:
         json.dump(jdict, json_file)
 
-def get_blog_entries(account_to_backup,persist=False):
+def get_blog_entries(account_to_backup):
     blog_list = []
     acc = Account(account_to_backup,steem_instance=stm)
     if os.path.exists(working_dir+"/Backups/"+account_to_backup+"/account_to_backup.json"):
