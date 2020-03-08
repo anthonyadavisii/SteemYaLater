@@ -1,4 +1,4 @@
-import os, certifi, csv, datetime, hashlib, io, json, logging, pycurl, random, time, wget, urllib3, shutil, socket, sys
+import os, certifi, csv, datetime, hashlib, io, json, logging, pycurl, random, re, time, wget, urllib3, shutil, socket, sys
 
 from beem import Steem
 from beem.account import Account
@@ -7,6 +7,7 @@ from beem.comment import Comment
 from beem.exceptions import AccountDoesNotExistsException, ContentDoesNotExistsException
 from beem.nodelist import NodeList
 from beem.instance import set_shared_steem_instance
+
 
 global working_dir, pauseTimeInit, persist
 
@@ -25,8 +26,19 @@ working_dir = os.getcwd()
 logging.basicConfig(filename=datetime.datetime.now().strftime("SteemYaLater%Y%m%d-%H%M%S.log"),format='%(asctime)s %(message)s',level=logging.WARNING)
 
 # Global Vars
-pauseTimeInit = 15
 persist = False
+pauseTimeInit = 15
+
+# Other variables
+
+regex = re.compile(
+        r'^(?:http|ftp)s?://' # http:// or https://
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
+        r'localhost|' #localhost...
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
+        r'(?::\d+)?' # optional port
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+
 
 halfPause = int(pauseTimeInit/2)
 lowPauseTime = pauseTimeInit - halfPause
@@ -84,7 +96,7 @@ def export_csv(name,input_list):
 
 def get_file_hash(ref):
     md5_returned = None
-    if str(ref).startswith('http'):
+    if re.match(regex,ref):
         try:
             request = get_http_response(ref)
             with request as url_to_check:
@@ -105,6 +117,7 @@ def get_file_hash(ref):
         with open(ref, 'rb') as file_to_check:
             data = file_to_check.read() # read contents of the file
             md5_returned = hashlib.md5(data).hexdigest() # pipe contents of the file through
+            file_to_check.close()
     return md5_returned
 
 def get_http_header(url):
@@ -148,12 +161,19 @@ def downloadProgress(download_t, download_d, upload_t, upload_d):
     sys.stdout.write("\r%s %3i%%" % ("Download:", frac*100)  )
 
 def downloadFile(url, outpath=False, key_file=False, cert_file=False):
+    fp = None
     fileName = url.split('/')[-1]
     curl = pycurl.Curl()
     if outpath:
         fp = open(outpath, "wb")
         curl.setopt(pycurl.WRITEDATA, fp)
     curl.setopt(pycurl.URL, url)
+    headers = []
+    curl.setopt(pycurl.HTTPHEADER, ['user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36',
+	                                'sec-fetch-dest: document',
+									'sec-fetch-mode: navigate',
+									'sec-fetch-site: none',
+									'sec-fetch-user: ?1'])
     curl.setopt(pycurl.NOPROGRESS, 0)
     curl.setopt(pycurl.PROGRESSFUNCTION, downloadProgress)
     curl.setopt(pycurl.FOLLOWLOCATION, 1)
@@ -162,15 +182,18 @@ def downloadFile(url, outpath=False, key_file=False, cert_file=False):
     curl.setopt(pycurl.TIMEOUT, 5)
     curl.setopt(pycurl.FTP_RESPONSE_TIMEOUT, 5)
     curl.setopt(pycurl.NOSIGNAL, 1)
-    curl.setopt(pycurl.SSL_VERIFYPEER, 0)
-    curl.setopt(pycurl.SSL_VERIFYHOST, 2)
     if key_file:
         curl.setopt(pycurl.SSLKEY, key_file)
     if cert_file:
         curl.setopt(pycurl.SSLCERT, cert_file)
     try:
         print("Start time: " + time.strftime("%c"))
-        curl.perform()
+        try:
+            curl.perform()
+        except Exception as e:
+            curl.setopt(pycurl.SSL_VERIFYPEER, 0)
+            curl.setopt(pycurl.SSL_VERIFYHOST, 2)
+            curl.perform()
         print("\nTotal-time: " + str(curl.getinfo(curl.TOTAL_TIME)))
         print("Download speed: %.2f bytes/second" % (curl.getinfo(curl.SPEED_DOWNLOAD)))
         print("Document size: %d bytes" % (curl.getinfo(curl.SIZE_DOWNLOAD)))
@@ -182,7 +205,7 @@ def downloadFile(url, outpath=False, key_file=False, cert_file=False):
     curl.close()
     sys.stdout.flush()
     hash = hashlib.md5(data).hexdigest()
-    if outpath:
+    if fp:
         fp.close()
     return hash
 
@@ -238,21 +261,28 @@ def download_blog_entry(blog_entry,hash_table,hashes): # accepts output from fro
             upPauseTime = pauseTimeInit + halfPause
             out_path = img_dir+'/'+img.split('/')[-1]
             if img:
-                if '//' in img and img.count('//') < 2:
-                    try:
-                        domain = img.split('//')[1].split('/')[0]
-                        filename = img.split('//')[1].split('/')[-1]
-                        if '.' in filename:
-                            ext = img.split('//')[1].split('/')[-1].split('.')[-1] #gets file extension
-                            filename = img.split('//')[1].split('/')[-1].split('.')[-2]
-                            full_filename = filename+'.'+ext
-                        else:
-                            full_filename = filename
-                    except TypeError:
-                        status_dict = {'id': id, 'url': img, 'wget': 'Unsupported URL', 'url3': False, 'pcurl': False}
-                        status_list.append(status_dict)
-                        logging.warning('Unsupported URL! '+img)
-                        continue
+                try:
+                    if re.match(regex,img):
+                        if '//' in img and img.count('//') < 2:
+                            try:
+                                domain = img.split('//')[1].split('/')[0]
+                                filename = img.split('//')[1].split('/')[-1]
+                                if '.' in filename:
+                                    ext = img.split('//')[1].split('/')[-1].split('.')[-1] #gets file extension
+                                    filename = img.split('//')[1].split('/')[-1].split('.')[-2]
+                                    full_filename = filename+'.'+ext
+                                else:
+                                    full_filename = filename
+                            except TypeError:
+                                status_dict = {'id': id, 'url': img, 'wget': 'Unsupported URL', 'url3': False, 'pcurl': False}
+                                status_list.append(status_dict)
+                                logging.warning('Unsupported URL! '+img)
+                                continue
+                except:
+                    status_dict = {'id': id, 'url': img, 'wget': 'Unsupported URL', 'url3': False, 'pcurl': False}
+                    status_list.append(status_dict)
+                    logging.warning('Unsupported URL! '+img)
+                    continue
                 else:
                     status_dict = {'id': id, 'url': img, 'wget': 'Unsupported URL', 'url3': False, 'pcurl': False}
                     status_list.append(status_dict)
@@ -330,7 +360,7 @@ def download_blog_entry(blog_entry,hash_table,hashes): # accepts output from fro
     except Exception as e:
         print(id+" experienced error "+e)
     else:
-        print("Entry "+id+" processed!")
+        print("Finished Processing Entry "+id+"!")
     return status_list
 
 #prepopulate list for batch operations
