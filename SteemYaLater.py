@@ -26,7 +26,7 @@ working_dir = os.getcwd()
 logging.basicConfig(filename=datetime.datetime.now().strftime("SteemYaLater%Y%m%d-%H%M%S.log"),format='%(asctime)s %(message)s',level=logging.WARNING)
 
 # Global Vars
-persist = True
+persist = False
 pauseTimeInit = 15
 
 # Other variables
@@ -156,49 +156,49 @@ def compare_hash(ref1,ref2): # not used but adding for future use
 def download(img,img_dir): #attempts downloading w all three providers
     status_list = []
     out_path = img_dir+'/'+img.split('/')[-1]
-	if not os.path.exists(os.path.join(img_dir,img.split('/')[-1])):
-	   try:
-		   wget.download(img,out=out_path)
-	   except Exception as e:
-		   status_dict = {'id': id, 'url': img, 'wget': e, 'url3': False, 'pcurl': False}
-		   status_list.append(status_dict)
-		   print("wget download failed! attempting download with urllib3.")
-		   try:
-			   pauseTime = random.randint(lowPauseTime, upPauseTime)
-			   time.sleep(pauseTime)
-			   download_image(out_path,img)
-		   except Exception as e:
-			   print(e)
-			   print("urllib3 download failed! attempting download with pycurl.")                               
-			   status_dict = {'id': id, 'url': img, 'wget': False, 'url3': e, 'pcurl': False}
-			   status_list.append(status_dict)
-			   try:
-				   downloadFile(img, out_path)
-			   except Exception as e:
-				   print(e)
-				   print("pycurl download failed! attempting download with pycurl.")                               
-				   status_dict = {'id': id, 'url': img, 'wget': False, 'url3': False, 'pcurl': e}
-				   status_list.append(status_dict)
-			   else:
-				   file_hash = downloadFile(img)
-				   hashes.append(file_hash)
-				   status_dict = {'id': id, 'url': img, 'wget': False, 'url3': False, 'pcurl': True}
-				   status_list.append(status_dict)
+    if not os.path.exists(os.path.join(img_dir,img.split('/')[-1])):
+       try:
+           wget.download(img,out=out_path)
+       except Exception as e:
+           status_dict = {'id': id, 'url': img, 'wget': e, 'url3': False, 'pcurl': False}
+           status_list.append(status_dict)
+           print("wget download failed! attempting download with urllib3.")
+           try:
+               pauseTime = random.randint(lowPauseTime, upPauseTime)
+               time.sleep(pauseTime)
+               download_image(out_path,img)
+           except Exception as e:
+               print(e)
+               print("urllib3 download failed! attempting download with pycurl.")                               
+               status_dict = {'id': id, 'url': img, 'wget': False, 'url3': e, 'pcurl': False}
+               status_list.append(status_dict)
+               try:
+                   downloadFile(img, out_path)
+               except Exception as e:
+                   print(e)
+                   print("pycurl download failed! attempting download with pycurl.")                               
+                   status_dict = {'id': id, 'url': img, 'wget': False, 'url3': False, 'pcurl': e}
+                   status_list.append(status_dict)
+               else:
+                   file_hash = downloadFile(img)
+                   hashes.append(file_hash)
+                   status_dict = {'id': id, 'url': img, 'wget': False, 'url3': False, 'pcurl': True}
+                   status_list.append(status_dict)
                    continue
-		   else:
-			   file_hash = get_file_hash(out_path)
-			   hashes.append(file_hash)
-			   status_dict = {'id': id, 'url': img, 'wget': False, 'url3': True, 'pcurl': False}
-			   status_list.append(status_dict)
+           else:
+               file_hash = get_file_hash(out_path)
+               hashes.append(file_hash)
+               status_dict = {'id': id, 'url': img, 'wget': False, 'url3': True, 'pcurl': False}
+               status_list.append(status_dict)
                continue
-	   else:
-		   file_hash = get_file_hash(out_path)
-		   hashes.append(file_hash)
-		   status_dict = status_dict = {'id': id, 'url': img, 'wget': True, 'url3': False, 'pcurl': False}
-		   status_list.append(status_dict)
+       else:
+           file_hash = get_file_hash(out_path)
+           hashes.append(file_hash)
+           status_dict = status_dict = {'id': id, 'url': img, 'wget': True, 'url3': False, 'pcurl': False}
+           status_list.append(status_dict)
 
-	pauseTime = random.randint(lowPauseTime, upPauseTime)
-	time.sleep(pauseTime)
+    pauseTime = random.randint(lowPauseTime, upPauseTime)
+    time.sleep(pauseTime)
     return status_list
 
 def downloadProgress(download_t, download_d, upload_t, upload_d):
@@ -218,10 +218,10 @@ def downloadFile(url, outpath=False, key_file=False, cert_file=False):
     curl.setopt(pycurl.URL, url)
     headers = []
     curl.setopt(pycurl.HTTPHEADER, ['user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36',
-	                                'sec-fetch-dest: document',
-									'sec-fetch-mode: navigate',
-									'sec-fetch-site: none',
-									'sec-fetch-user: ?1'])
+                                    'sec-fetch-dest: document',
+                                    'sec-fetch-mode: navigate',
+                                    'sec-fetch-site: none',
+                                    'sec-fetch-user: ?1'])
     curl.setopt(pycurl.NOPROGRESS, 0)
     curl.setopt(pycurl.PROGRESSFUNCTION, downloadProgress)
     curl.setopt(pycurl.FOLLOWLOCATION, 1)
@@ -346,7 +346,7 @@ def download_blog_entry(blog_entry,hash_table,hashes): # accepts output from fro
                                         except FileExistsError:
                                             print('Symbolic link already exists!')
                                             logging.warning('Symbolic link already exists! '+img)
-                            continue
+                                            continue
                     except Exception as e:
                         status_dict = {'id': id, 'url': img, 'wget': False, 'url3': e, 'pcurl': False}
                         status_list.append(status_dict)
@@ -380,30 +380,31 @@ def download_blog_entry(blog_entry,hash_table,hashes): # accepts output from fro
                                    hashes.append(file_hash)
                                    status_dict = {'id': id, 'url': img, 'wget': False, 'url3': False, 'pcurl': True}
                                    status_list.append(status_dict)
+                                   continue
                            else:
                                file_hash = get_file_hash(out_path)
                                hashes.append(file_hash)
                                status_dict = {'id': id, 'url': img, 'wget': False, 'url3': True, 'pcurl': False}
                                status_list.append(status_dict)
+                               continue
                        else:
                            file_hash = get_file_hash(out_path)
                            hashes.append(file_hash)
                            status_dict = status_dict = {'id': id, 'url': img, 'wget': True, 'url3': False, 'pcurl': False}
                            status_list.append(status_dict)
+                           continue
                     pauseTime = random.randint(lowPauseTime, upPauseTime)
                     time.sleep(pauseTime)
                 except Exception as e:
                     try:
                         download(img,img_dir)
-					except Exception as e:
-						status_dict = status_dict = {'id': id, 'url': img, 'wget': 'DNS lookup failed!', 'url3': False, 'pcurl': False}
-						status_list.append(status_dict)
-						logging.warning("Unable to get resolve hostname "+img)
-						continue
-					else:
+                    except Exception as e:
+                        status_dict = status_dict = {'id': id, 'url': img, 'wget': 'DNS lookup failed!', 'url3': False, 'pcurl': False}
+                        status_list.append(status_dict)
+                        logging.warning("Unable to get resolve hostname "+img)
+                    else:
                         status_dict = status_dict = {'id': id, 'url': img, 'wget': 'Unknown', 'url3': 'Unknown', 'pcurl': 'Unknown'}
                         status_list.append(status_dict)
-						continue
     except KeyError:      
         print(id+" has no images!")
     except Exception as e:
@@ -435,6 +436,6 @@ def download_blogs(accounts,rounds):
                 for s in stats:
                     results.append(s)
             i += 1
-		export_csv('SteemYaLater_'+account_to_backup+'_results_',results)
+        export_csv('SteemYaLater_'+account_to_backup+'_results_',results)
 
 download_blogs(accounts,1) #runs backups on accounts w one iteration.
