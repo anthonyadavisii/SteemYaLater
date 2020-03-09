@@ -80,7 +80,7 @@ def get_blog_entries(account_to_backup):
             if c['author'] == account_to_backup:
                 blog_list.append(c)
     if persist:
-        writejson(working_dir+"/Backups/"+account_to_backup+"/account_to_backup.json",blog_list)
+        writejson(working_dir+"/Backups/"+account_to_backup+".json",blog_list)
     return blog_list
 
 # exports list to csv file
