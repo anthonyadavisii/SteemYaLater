@@ -26,7 +26,7 @@ working_dir = os.getcwd()
 logging.basicConfig(filename=datetime.datetime.now().strftime("SteemYaLater%Y%m%d-%H%M%S.log"),format='%(asctime)s %(message)s',level=logging.WARNING)
 
 # Global Vars
-persist = True
+persist = False
 pauseTimeInit = 15
 
 # Other variables
@@ -298,7 +298,7 @@ def download_blog_entry(blog_entry,hash_table,hashes): # accepts output from fro
                                         except FileExistsError:
                                             print('Symbolic link already exists!')
                                             logging.warning('Symbolic link already exists! '+img)
-                            continue
+                                            continue
                     except Exception as e:
                         status_dict = {'id': id, 'url': img, 'wget': False, 'url3': e, 'pcurl': False}
                         status_list.append(status_dict)
