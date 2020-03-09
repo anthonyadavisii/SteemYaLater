@@ -26,7 +26,7 @@ working_dir = os.getcwd()
 logging.basicConfig(filename=datetime.datetime.now().strftime("SteemYaLater%Y%m%d-%H%M%S.log"),format='%(asctime)s %(message)s',level=logging.WARNING)
 
 # Global Vars
-persist = False
+persist = True
 pauseTimeInit = 15
 
 # Other variables
@@ -152,6 +152,54 @@ def compare_hash(ref1,ref2): # not used but adding for future use
     if k1 != k2:
         print("Hash Mismatch!")
         return False
+
+def download(img,img_dir): #attempts downloading w all three providers
+    status_list = []
+    out_path = img_dir+'/'+img.split('/')[-1]
+	if not os.path.exists(os.path.join(img_dir,img.split('/')[-1])):
+	   try:
+		   wget.download(img,out=out_path)
+	   except Exception as e:
+		   status_dict = {'id': id, 'url': img, 'wget': e, 'url3': False, 'pcurl': False}
+		   status_list.append(status_dict)
+		   print("wget download failed! attempting download with urllib3.")
+		   try:
+			   pauseTime = random.randint(lowPauseTime, upPauseTime)
+			   time.sleep(pauseTime)
+			   download_image(out_path,img)
+		   except Exception as e:
+			   print(e)
+			   print("urllib3 download failed! attempting download with pycurl.")                               
+			   status_dict = {'id': id, 'url': img, 'wget': False, 'url3': e, 'pcurl': False}
+			   status_list.append(status_dict)
+			   try:
+				   downloadFile(img, out_path)
+			   except Exception as e:
+				   print(e)
+				   print("pycurl download failed! attempting download with pycurl.")                               
+				   status_dict = {'id': id, 'url': img, 'wget': False, 'url3': False, 'pcurl': e}
+				   status_list.append(status_dict)
+			   else:
+				   file_hash = downloadFile(img)
+				   hashes.append(file_hash)
+				   status_dict = {'id': id, 'url': img, 'wget': False, 'url3': False, 'pcurl': True}
+				   status_list.append(status_dict)
+                   continue
+		   else:
+			   file_hash = get_file_hash(out_path)
+			   hashes.append(file_hash)
+			   status_dict = {'id': id, 'url': img, 'wget': False, 'url3': True, 'pcurl': False}
+			   status_list.append(status_dict)
+               continue
+	   else:
+		   file_hash = get_file_hash(out_path)
+		   hashes.append(file_hash)
+		   status_dict = status_dict = {'id': id, 'url': img, 'wget': True, 'url3': False, 'pcurl': False}
+		   status_list.append(status_dict)
+
+	pauseTime = random.randint(lowPauseTime, upPauseTime)
+	time.sleep(pauseTime)
+    return status_list
 
 def downloadProgress(download_t, download_d, upload_t, upload_d):
     try:
@@ -298,7 +346,7 @@ def download_blog_entry(blog_entry,hash_table,hashes): # accepts output from fro
                                         except FileExistsError:
                                             print('Symbolic link already exists!')
                                             logging.warning('Symbolic link already exists! '+img)
-                                            continue
+                            continue
                     except Exception as e:
                         status_dict = {'id': id, 'url': img, 'wget': False, 'url3': e, 'pcurl': False}
                         status_list.append(status_dict)
@@ -345,10 +393,17 @@ def download_blog_entry(blog_entry,hash_table,hashes): # accepts output from fro
                     pauseTime = random.randint(lowPauseTime, upPauseTime)
                     time.sleep(pauseTime)
                 except Exception as e:
-                    status_dict = status_dict = {'id': id, 'url': img, 'wget': 'DNS lookup failed!', 'url3': False, 'pcurl': False}
-                    status_list.append(status_dict)
-                    logging.warning("Unable to get resolve hostname "+img)
-                    continue
+                    try:
+                        download(img,img_dir)
+					except Exception as e:
+						status_dict = status_dict = {'id': id, 'url': img, 'wget': 'DNS lookup failed!', 'url3': False, 'pcurl': False}
+						status_list.append(status_dict)
+						logging.warning("Unable to get resolve hostname "+img)
+						continue
+					else:
+                        status_dict = status_dict = {'id': id, 'url': img, 'wget': 'Unknown', 'url3': 'Unknown', 'pcurl': 'Unknown'}
+                        status_list.append(status_dict)
+						continue
     except KeyError:      
         print(id+" has no images!")
     except Exception as e:
