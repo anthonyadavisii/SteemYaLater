@@ -63,8 +63,8 @@ def writejson(filename,jdict):
 def get_blog_entries(account_to_backup):
     blog_list = []
     acc = Account(account_to_backup,steem_instance=stm)
-    if os.path.exists(working_dir+"/Backups/"+account_to_backup+"/account_to_backup.json"):
-        jTx = loadjson(working_dir+"/Backups/"+account_to_backup+"/account_to_backup.json")
+    if os.path.exists(working_dir+"/Backups/"+account_to_backup+"/"+account_to_backup+".json"):
+        jTx = loadjson(working_dir+"/Backups/"+account_to_backup+"/"+account_to_backup+".json")
         if jTx:
             for json_data in jTx:
                 blog_list.append(json_data)
