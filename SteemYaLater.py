@@ -184,19 +184,16 @@ def download(img,img_dir): #attempts downloading w all three providers
                    hashes.append(file_hash)
                    status_dict = {'id': id, 'url': img, 'wget': False, 'url3': False, 'pcurl': True}
                    status_list.append(status_dict)
-                   continue
            else:
                file_hash = get_file_hash(out_path)
                hashes.append(file_hash)
                status_dict = {'id': id, 'url': img, 'wget': False, 'url3': True, 'pcurl': False}
                status_list.append(status_dict)
-               continue
        else:
            file_hash = get_file_hash(out_path)
            hashes.append(file_hash)
            status_dict = status_dict = {'id': id, 'url': img, 'wget': True, 'url3': False, 'pcurl': False}
            status_list.append(status_dict)
-
     pauseTime = random.randint(lowPauseTime, upPauseTime)
     time.sleep(pauseTime)
     return status_list
