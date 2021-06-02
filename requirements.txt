@@ -1,5 +1,5 @@
 certifi==2018.1.18
-urllib3==1.25.8
+urllib3==1.26.5
 wget==3.2
 pycurl==7.43.0.5
 beem==0.21.1
