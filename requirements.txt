@@ -1,4 +1,4 @@
-certifi==2018.1.18
+certifi==2022.12.7
 urllib3==1.25.8
 wget==3.2
 pycurl==7.43.0.5
